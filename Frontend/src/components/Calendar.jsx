@@ -1,16 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { Calendar, dateFnsLocalizer } from "react-big-calendar";
-import format from "date-fns/format";
-import parse from "date-fns/parse";
-import startOfWeek from "date-fns/startOfWeek";
-import getDay from "date-fns/getDay";
-import "react-big-calendar/lib/css/react-big-calendar.css";
-import AppointmentForm from "./AppointmentForm";
-
-import enUS from "date-fns/locale/en-US";
+import React, { useState, useEffect } from 'react';
+import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
+import format from 'date-fns/format';
+import parse from 'date-fns/parse';
+import startOfWeek from 'date-fns/startOfWeek';
+import getDay from 'date-fns/getDay';
+import enUS from 'date-fns/locale/en-US';
+import AppointmentForm from './AppointmentForm';
+import { patients as initialPatients, doctors as initialDoctors } from '../data/clinicData';
 
 const locales = {
-  "en-US": enUS,
+  'en-US': enUS,
 };
 
 const localizer = dateFnsLocalizer({
@@ -21,16 +20,10 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-import {
-  patients as initialPatients,
-  doctors as initialDoctors,
-} from "../data/clinicData";
-
 const CalendarView = ({ onLogout }) => {
   const [appointments, setAppointments] = useState(() => {
-    const savedAppointments =
-      JSON.parse(localStorage.getItem("appointments")) || [];
-    return savedAppointments.map((a) => ({
+    const savedAppointments = JSON.parse(localStorage.getItem('appointments')) || [];
+    return savedAppointments.map(a => ({
       ...a,
       start: new Date(a.start),
       end: new Date(a.end),
@@ -40,24 +33,28 @@ const CalendarView = ({ onLogout }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [filter, setFilter] = useState({ patient: "", doctor: "" });
+  const [filter, setFilter] = useState({ patient: '', doctor: '' });
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [navigatedDate, setNavigatedDate] = useState(new Date());
 
   useEffect(() => {
-    localStorage.setItem("appointments", JSON.stringify(appointments));
+    localStorage.setItem('appointments', JSON.stringify(appointments));
   }, [appointments]);
 
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    window.addEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
     return () => {
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
   const handleSelectSlot = ({ start }) => {
+    if (start < new Date().setHours(0, 0, 0, 0)) {
+      return;
+    }
     setSelectedDate(start);
     setSelectedAppointment(null);
     setIsModalOpen(true);
@@ -95,20 +92,20 @@ const CalendarView = ({ onLogout }) => {
 
   const filteredAppointments = appointments.filter(
     (a) =>
-      (filter.patient === "" || a.patient === filter.patient) &&
-      (filter.doctor === "" || a.doctor === filter.doctor)
+      (filter.patient === '' || a.patient === filter.patient) &&
+      (filter.doctor === '' || a.doctor === filter.doctor)
   );
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle("dark");
+    document.documentElement.classList.toggle('dark');
   };
 
   return (
-    <div className={`p-4 ${isDarkMode ? "dark" : ""}`}>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Clinic Calendar</h1>
-        <div className="flex items-center">
+    <div className={`p-4 ${isDarkMode ? 'dark' : ''}`}>
+        <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold">Clinic Calendar</h1>
+            <div className="flex items-center">
                 <button
                     onClick={toggleDarkMode}
                     className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 mr-4"
@@ -122,38 +119,38 @@ const CalendarView = ({ onLogout }) => {
                     Logout
                 </button>
             </div>
-      </div>
-      <div className="flex gap-4 mb-4">
-        <select
-          value={filter.patient}
-          onChange={(e) => setFilter({ ...filter, patient: e.target.value })}
-          className="p-2 border rounded"
-        >
-          <option value="">All Patients</option>
-          {initialPatients.map((p) => (
-            <option key={p.id} value={p.name}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-        <select
-          value={filter.doctor}
-          onChange={(e) => setFilter({ ...filter, doctor: e.target.value })}
-          className="p-2 border rounded"
-        >
-          <option value="">All Doctors</option>
-          {initialDoctors.map((d) => (
-            <option key={d.id} value={d.name}>
-              {d.name}
-            </option>
-          ))}
-        </select>
-      </div>
+        </div>
+        <div className="flex gap-4 mb-4">
+            <select
+                value={filter.patient}
+                onChange={(e) => setFilter({ ...filter, patient: e.target.value })}
+                className="p-2 border rounded"
+            >
+                <option value="">All Patients</option>
+                {initialPatients.map((p) => (
+                    <option key={p.id} value={p.name}>
+                        {p.name}
+                    </option>
+                ))}
+            </select>
+            <select
+                value={filter.doctor}
+                onChange={(e) => setFilter({ ...filter, doctor: e.target.value })}
+                className="p-2 border rounded"
+            >
+                <option value="">All Doctors</option>
+                {initialDoctors.map((d) => (
+                    <option key={d.id} value={d.name}>
+                        {d.name}
+                    </option>
+                ))}
+            </select>
+        </div>
       {isMobile ? (
         <div>
           <input
             type="date"
-            value={format(selectedDate, "yyyy-MM-dd")}
+            value={format(selectedDate, 'yyyy-MM-dd')}
             onChange={(e) => setSelectedDate(new Date(e.target.value))}
             className="w-full p-2 border rounded mb-4"
           />
@@ -161,8 +158,8 @@ const CalendarView = ({ onLogout }) => {
             {filteredAppointments
               .filter(
                 (a) =>
-                  format(new Date(a.start), "yyyy-MM-dd") ===
-                  format(selectedDate, "yyyy-MM-dd")
+                  format(new Date(a.start), 'yyyy-MM-dd') ===
+                  format(selectedDate, 'yyyy-MM-dd')
               )
               .map((appointment) => (
                 <div
@@ -171,39 +168,40 @@ const CalendarView = ({ onLogout }) => {
                   className="p-4 rounded-lg shadow-md bg-white cursor-pointer"
                 >
                   <p className="font-bold">{appointment.title}</p>
-                  <p>{`${format(new Date(appointment.start), "p")} - ${format(
+                  <p>{`${format(new Date(appointment.start), 'p')} - ${format(
                     new Date(appointment.end),
-                    "p"
+                    'p'
                   )}`}</p>
                   <p>Patient: {appointment.patient}</p>
                   <p>Doctor: {appointment.doctor}</p>
                 </div>
               ))}
           </div>
-          <button
-            onClick={() => {
-              setSelectedAppointment(null);
-              setIsModalOpen(true);
-            }}
-            className="fixed bottom-4 right-4 bg-blue-500 text-white p-4 rounded-full shadow-lg"
-          >
-            +
-          </button>
+            <button
+                onClick={() => {
+                    setSelectedAppointment(null);
+                    setIsModalOpen(true);
+                }}
+                className="fixed bottom-4 right-4 bg-blue-500 text-white p-4 rounded-full shadow-lg"
+            >
+                +
+            </button>
         </div>
       ) : (
-        <Calendar
-          localizer={localizer}
-          events={filteredAppointments.map((a) => ({
-            ...a,
-            title: `${a.patient} - ${a.doctor}`,
-          }))}
-          startAccessor="start"
-          endAccessor="end"
-          style={{ height: "calc(100vh - 200px)" }}
-          onSelectSlot={handleSelectSlot}
-          onSelectEvent={handleSelectEvent}
-          selectable
-        />
+        <div className="relative h-[calc(100vh-250px)] z-0">
+          <Calendar
+            localizer={localizer}
+            events={filteredAppointments.map(a => ({...a, title: `${a.patient} - ${a.doctor}`}))}
+            startAccessor="start"
+            endAccessor="end"
+            className="h-full"
+            onSelectSlot={handleSelectSlot}
+            onSelectEvent={handleSelectEvent}
+            selectable
+            date={navigatedDate}
+            onNavigate={(date) => setNavigatedDate(date)}
+          />
+        </div>
       )}
       {isModalOpen && (
         <AppointmentForm
